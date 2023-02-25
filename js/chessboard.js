@@ -3,7 +3,9 @@ export default {
 	highlight
 };
 
-let tiles = []
+let diagonals = []
+let highlighted = []
+let tileDiagonals = new Map()
 
 
 // ****************************
@@ -12,17 +14,27 @@ function draw(boardEl) {
 	// draw the chessboard, 8 rows (divs)
 	// of 8 tiles (divs) each, inserting all DOM
 	// elements into `boardEl` div
+	for (let i =0; i < 30; i++) {
+		 diagonals.push([])
+	}
 
 	for (let i=0; i < 8; i++) {
 		let rowEl = document.createElement('div')
-		let rowTiles = []
-		tiles.push(rowTiles)
 		for (let j=0; j< 8; j++) {
 			let tileEl = document.createElement('div')
-			tileEl.dataset.row = i
-			tileEl.dataset.col = j
 			rowEl.appendChild(tileEl)
-			rowTiles.push(tileEl)
+
+			let majorDiag = diagonals[7 - (i -j)]
+			let minorDiag = diagonals[15 + (i + j)]
+
+			majorDiag.push(tileEl)
+			minorDiag.push(tileEl)
+
+			// save a reference to each of a tile's two diagonal
+			// collections
+			tileDiagonals.set(tileEl,[ majorDiag, minorDiag ])
+
+			rowEl.appendChild(tileEl)
 		}
 		boardEl.appendChild(rowEl)
 	}
@@ -35,38 +47,21 @@ function highlight(tileEl) {
 	// to highlight them via CSS class "highlighted"
 
 	// clear all currently highlighted tiles
-	for (let row of tiles) {
-		for (let el of row) {
-			el.classList.remove('highlighted')
+	for (let diagonal of highlighted) {
+		for (let el of diagonal) {
+			el.classList.remove("highlighted");
 		}
 	}
 
 	if (tileEl) {
-		let tileRowIdx = Number(tileEl.dataset.row)
-		let tileColIdx = Number(tileEl.dataset.col)
+		// retrieve the clicked tile's two diagonal collections
+		highlighted = tileDiagonals.get(tileEl)
 
-		// highlight in the up-left direction
-		for (let i = tileRowIdx, j = tileColIdx; i >=0 && j >= 0; i--, j--) {
-			let el = tiles[i][j]
-			el.classList.add('highlighted')
-		}
-
-		// highlight in the up-right direction
-		for (let i = tileRowIdx, j = tileColIdx; i >=0 && j < 8; i--, j++) {
-			let el = tiles[i][j]
-			el.classList.add('highlighted')
-		}
-
-		// highlight in the down-left direction
-		for (let i = tileRowIdx, j = tileColIdx; i < 8 && j >= 0; i++, j--) {
-			let el = tiles[i][j]
-			el.classList.add('highlighted')
-		}
-
-		// highlight in the down-right direction
-		for (let i = tileRowIdx, j = tileColIdx; i < 8 && j < 8; i++, j++) {
-			let el = tiles[i][j]
-			el.classList.add('highlighted')
+		// highlight all tiles in both diagonal collections
+		for (let diagonal of highlighted) {
+			for (let el of diagonal) {
+				el.classList.add('highlighted')
+			}
 		}
 	}
 }
